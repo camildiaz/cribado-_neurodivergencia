@@ -26,7 +26,7 @@
 
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.5;min-height:100vh;display:flex;justify-content:center;padding:28px 16px 60px;}
+body{background:linear-gradient(160deg, #D6EEE7 0%, #E4F0E8 45%, #EDF0D9 100%);background-attachment:fixed;color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.5;min-height:100vh;display:flex;justify-content:center;padding:28px 16px 60px;}
 .app-shell{width:100%;max-width:620px;}
 
 .progress-wrap{margin-bottom:22px;}
@@ -35,10 +35,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-siz
 .progress-fill.alert{background:var(--alert);}
 .progress-labels{display:flex;justify-content:space-between;margin-top:7px;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
 
-.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--turquoise);margin:0 0 4px;font-weight:600;}
+.eyebrow-pill{display:inline-block;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#fff;padding:6px 13px;border-radius:999px;margin:0 0 14px;}
 .sub-eyebrow{font-size:13px;color:var(--muted);margin:0 0 18px;}
 
-.card{background:var(--surface);border-radius:20px;padding:34px 30px;box-shadow:0 1px 2px rgba(22,48,42,.06), 0 8px 24px rgba(22,48,42,.06);border:1px solid var(--line);}
+.card{background:var(--surface);border-radius:20px;padding:34px 30px;box-shadow:0 2px 6px rgba(22,48,42,.09), 0 16px 38px rgba(22,48,42,.12);border:1px solid var(--line);}
 .card.tone-calm{border-left:5px solid var(--turquoise);}
 .card.tone-alert{background:var(--alert-soft);border-color:var(--alert);}
 .card.tone-lime{background:var(--lime-soft);border-color:var(--lime);}
@@ -120,6 +120,34 @@ td.flag-high{color:var(--alert);font-weight:600;}
 .domain-tag{display:inline-block;font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg);border-radius:6px;padding:2px 7px;margin-top:5px;}
 
 @media (prefers-reduced-motion: reduce){ .card,.btn,.domain-card{transition:none;} }
+
+/* ---- rediseño: jerarquía + color funcional ---- */
+.icon-badge{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;}
+.icon-badge svg{width:58%;height:58%;}
+
+.hero-cluster{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 6px;}
+.hero-cluster .icon-badge{width:42px;height:42px;}
+
+.section-head{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+.section-head .head-bar{width:6px;height:24px;border-radius:3px;flex-shrink:0;}
+.section-head h2{margin:0;}
+
+.result-block{border-left:5px solid var(--line);padding:22px 22px 18px;margin-bottom:18px;background:var(--surface);border-radius:16px;box-shadow:0 1px 2px rgba(22,48,42,.05);}
+.result-head{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.result-head-text{flex:1;min-width:0;}
+.result-head-text h3{margin-bottom:2px;}
+.score-ring{flex-shrink:0;}
+
+.tool-list li{display:flex;gap:12px;align-items:flex-start;}
+.tool-icon{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.tool-icon svg{width:13px;height:13px;}
+
+.def-list li{padding-left:14px;border-left:3px solid var(--line);}
+
+.note-box, .insight-box{display:flex;gap:14px;align-items:flex-start;}
+.note-box p, .insight-box p{margin:0;}
+.box-icon{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:17px;margin-top:1px;}
+
 </style>
 </head>
 <body>
@@ -369,12 +397,40 @@ function renderHorizon(){
 }
 
 /* ---------------- shared bits ---------------- */
-function eyebrow(text){ return `<p class="eyebrow">${text}</p>`; }
+function eyebrow(text){
+  const tone=toneForScreen(STATE.screen);
+  const bg = tone==='alert' ? 'var(--alert)' : 'var(--turquoise)';
+  return `<span class="eyebrow-pill" style="background:${bg};">${text}</span>`;
+}
 function persistentSafety(){ return `<div class="persistent-safety">⚠ Si sientes mucho mareo o sensación de desmayo, detente y siéntate o acuéstate ahora.</div>`; }
 function dots(total,current){
   let html='<div class="dots">';
   for(let i=0;i<total;i++){ let cls='dot'; if(i<current) cls+=' filled'; if(i===current) cls+=' current'; html+=`<span class="${cls}"></span>`; }
   return html+'</div>';
+}
+
+/* ---------------- color por dominio + helpers visuales ---------------- */
+const PALETTE = ['#12A19E', '#AFC62A'];
+function domainColor(domain){ return PALETTE[DOMAIN_ORDER.indexOf(domain.id) % 2]; }
+function domainColorSoft(domain){ return DOMAIN_ORDER.indexOf(domain.id) % 2 === 0 ? 'var(--turquoise-soft)' : 'var(--lime-soft)'; }
+function iconBadge(domain, size){
+  size = size || 44;
+  const color = domainColor(domain); const soft = domainColorSoft(domain);
+  return `<span class="icon-badge" style="width:${size}px;height:${size}px;background:${soft};color:${color};">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${domain.icon}</svg>
+  </span>`;
+}
+function scoreRing(score,total,color){
+  const r=22, c=2*Math.PI*r; const pct = total ? score/total : 0; const dash = c*pct;
+  return `
+  <svg width="56" height="56" viewBox="0 0 56 56" class="score-ring" aria-hidden="true">
+    <circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--line)" stroke-width="6"/>
+    <circle cx="28" cy="28" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${dash} ${c}" transform="rotate(-90 28 28)"/>
+    <text x="28" y="33" text-anchor="middle" style="font-family:var(--font-mono);font-size:13px;font-weight:700;fill:var(--ink);">${score}/${total}</text>
+  </svg>`;
+}
+function sectionHead(text,color){
+  return `<div class="section-head"><span class="head-bar" style="background:${color||'var(--turquoise)'};"></span><h2>${text}</h2></div>`;
 }
 
 /* ---------------- timers ---------------- */
@@ -390,12 +446,14 @@ function updateTimerText(seconds){
 
 /* ---------------- screens ---------------- */
 function screenLanding(){
+  const cluster = DOMAIN_ORDER.map(id=>iconBadge(DOMAINS[id])).join('');
   return `
     ${renderHorizon()}
     <div class="card">
-      <p class="eyebrow">Autoevaluación breve · varios ejes</p>
+      ${eyebrow('Autoevaluación breve · varios ejes')}
       <h1>¿Tu cuerpo y tu cabeza te han estado hablando en varios idiomas a la vez?</h1>
       <p class="lead">Mareo al pararte, dolor que se mueve, luces que molestan, articulaciones que se salen de lugar, digestión rara, o simplemente la sensación de que tu cabeza funciona distinto.</p>
+      <div class="hero-cluster">${cluster}</div>
       <p class="muted">Elige qué explorar. No es un diagnóstico — es información para conversar con tu médico.</p>
       <p class="muted"><strong>Esta autoevaluación es para personas mayores de 18 años.</strong></p>
       <p class="muted">Las preguntas están inspiradas en cribados clínicos reconocidos, aunque no los reproducen textualmente. Este es un prototipo de autoevaluación — no un instrumento educativo o de divulgación validado.</p>
@@ -411,7 +469,7 @@ function screenDomainSelect(){
     const d=DOMAINS[id]; const sel=STATE.selectedDomains.includes(id);
     return `
       <button class="domain-card${sel?' selected':''}" onclick="toggleDomain('${id}')" aria-pressed="${sel}">
-        <svg class="domain-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d.icon}</svg>
+        ${iconBadge(d,40)}
         <span class="domain-text">
           <strong>${esc(d.label)}</strong>
           <span>${esc(d.short)}</span>
@@ -600,8 +658,9 @@ function domainScore(domain){
   const arr=STATE.answers[domain.id]||[]; const score=arr.filter(Boolean).length;
   return {score,total:domain.questions.length, high:(score/domain.questions.length)>=0.5};
 }
-function toolListHtml(tools){
-  return `<ul class="tool-list">${tools.map(t=>`<li><strong>${esc(t.t)}</strong>${esc(t.d)}${t.c?`<span class="caveat">${esc(t.c)}</span>`:''}</li>`).join('')}</ul>`;
+function toolListHtml(tools,domain){
+  const color=domainColor(domain); const soft=domainColorSoft(domain);
+  return `<ul class="tool-list">${tools.map(t=>`<li><span class="tool-icon" style="background:${soft};color:${color};"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"/></svg></span><span><strong>${esc(t.t)}</strong>${esc(t.d)}${t.c?`<span class="caveat">${esc(t.c)}</span>`:''}</span></li>`).join('')}</ul>`;
 }
 function domainResultBlock(domain){
   const {score,total,high}=domainScore(domain);
@@ -628,34 +687,42 @@ function domainResultBlock(domain){
     }
   }
   return `
-    <h3>${esc(domain.label)}${domain.exploratory?' <span class="domain-tag">exploratorio</span>':''}</h3>
-    <p>Marcaste <strong>${score} de ${total}</strong> síntomas. ${high ? 'Un número a tener en cuenta.' : 'Menos síntomas marcados en este eje.'}</p>
-    ${extra}
-    ${toolListHtml(domain.tools)}
+    <div class="result-block" style="border-left-color:${domainColor(domain)};">
+      <div class="result-head">
+        ${iconBadge(domain,44)}
+        <div class="result-head-text">
+          <h3>${esc(domain.label)}${domain.exploratory?' <span class="domain-tag">exploratorio</span>':''}</h3>
+          <p class="muted" style="margin:0;">${high ? 'Un número a tener en cuenta.' : 'Menos síntomas marcados en este eje.'}</p>
+        </div>
+        ${scoreRing(score,total,domainColor(domain))}
+      </div>
+      ${extra}
+      ${toolListHtml(domain.tools,domain)}
+    </div>
   `;
 }
 function glossarySection(){
   const list=orderedSelected();
-  const items=list.map(d=>`<li><strong>${esc(d.label)}</strong><span class="muted">${esc(d.def)}</span></li>`).join('');
-  return `<h2 style="margin-top:28px;">¿Qué significa cada eje?</h2><ul class="def-list">${items}</ul>`;
+  const items=list.map(d=>`<li style="border-left-color:${domainColor(d)};"><strong>${esc(d.label)}</strong><span class="muted">${esc(d.def)}</span></li>`).join('');
+  return `${sectionHead('¿Qué significa cada eje?')}<ul class="def-list">${items}</ul>`;
 }
 
 function screenResults(){
   const list=orderedSelected();
-  const blocks=list.map(d=>domainResultBlock(d)).join('<hr style="border:none;border-top:1px solid var(--line);margin:26px 0;">');
+  const blocks=list.map(d=>domainResultBlock(d)).join('');
   const highCount=list.filter(d=>domainScore(d).high).length;
 
   let insight='';
   if(highCount>=2){
-    insight=`<div class="insight-box"><p>Marcaste síntomas significativos en <strong>${highCount} de ${list.length}</strong> ejes que exploraste. En personas neurodivergentes, la disautonomía, la hipermovilidad, el dolor crónico y la sensibilidad sensorial suelen aparecer juntas — no es casualidad, y no significa que estés exagerando. Vale la pena llevar este panorama completo a tu médico, en vez de consultar cada síntoma por separado.</p></div>`;
+    insight=`<div class="insight-box"><div class="box-icon" style="background:var(--lime);color:var(--ink);">♥</div><p>Marcaste síntomas significativos en <strong>${highCount} de ${list.length}</strong> ejes que exploraste. En personas neurodivergentes, la disautonomía, la hipermovilidad, el dolor crónico y la sensibilidad sensorial suelen aparecer juntas — no es casualidad, y no significa que estés exagerando. Vale la pena llevar este panorama completo a tu médico, en vez de consultar cada síntoma por separado.</p></div>`;
   }
 
   return `
     ${renderHorizon()}
     <div class="card">
       ${eyebrow('Tus resultados')}
-      <h2>Esto es lo que marcaste</h2>
-      <div class="note-box"><p><strong>Cómo leer esto:</strong> estos síntomas pesan más como señal cuando no tienen ya una causa médica identificada, y cuando aparecen junto con síntomas de otros ejes. Si un síntoma puntual ya tiene una causa conocida (por ejemplo, anemia explicando el cansancio), pesa menos aquí. Lo que vale la pena mirar es el patrón sin explicación clara que se repite entre ejes.</p></div>
+      ${sectionHead('Esto es lo que marcaste')}
+      <div class="note-box"><div class="box-icon" style="background:var(--turquoise);color:#fff;">i</div><p><strong>Cómo leer esto:</strong> estos síntomas pesan más como señal cuando no tienen ya una causa médica identificada, y cuando aparecen junto con síntomas de otros ejes. Si un síntoma puntual ya tiene una causa conocida (por ejemplo, anemia explicando el cansancio), pesa menos aquí. Lo que vale la pena mirar es el patrón sin explicación clara que se repite entre ejes.</p></div>
       ${insight}
       ${blocks}
       ${glossarySection()}
@@ -664,7 +731,7 @@ function screenResults(){
         Este cribado es de orientación, no reemplaza evaluación médica. No indica iniciar ni suspender medicamentos. Las cantidades de sal deben conversarse con tu médico. El eje digestivo/MCAS es el más exploratorio de los siete.
       </div>
 
-      <h2 style="margin-top:28px;">Antes de irte</h2>
+      ${sectionHead('Antes de irte','var(--lime)')}
       <p class="muted">Recibe estos resultados en tu correo, para conversarlos con tu médico. Si quieres, deja también tu WhatsApp (opcional) para avisarte cuando publiquemos clases a bajo costo sobre estos temas.</p>
       ${STATE.contactSubmitted ? `
         <div class="confirm-box">
